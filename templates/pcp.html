@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+        <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+    <ul>
+        <li><a href="{{ url_for('mds') }}">MDS Data Plot</a></li>
+        <li><a href="{{ url_for('mds_var') }}">MDS Variable Plot</a></li>
+        <li><a href="{{ url_for('pcp') }}">PCP</a></li>
+          </div>
+        </li>
+    </ul>
+
+    <select multiple id="mySelect">
+      <option onclick="selectParameter(event)" value="radius_mean">Radius Mean</option>
+      <option onclick="selectParameter(event)" value="texture_mean">Texture Mean</option>
+      <option onclick="selectParameter(event)" value="perimeter_mean">Perimeter Mean</option>
+      <option onclick="selectParameter(event)" value="area_mean">Area Mean</option>
+      <option onclick="selectParameter(event)" value="smoothness_mean">Smoothness Mean</option>
+      <option onclick="selectParameter(event)" value="compactness_mean">Compactness Mean</option>
+      <option onclick="selectParameter(event)" value="concavity_mean">Concavity Mean</option>
+      <option onclick="selectParameter(event)" value="concave points_mean">Concave Points Mean</option>
+      <option onclick="selectParameter(event)" value="symmetry_mean">Symmetry Mean</option>
+      <option onclick="selectParameter(event)" value="fractal_dimension_mean">Fractal Dimension Mean</option>
+      <option onclick="selectParameter(event)" value="radius_se">Radius Se</option>
+      <option onclick="selectParameter(event)" value="texture_se">Texture Se</option>
+      <option onclick="selectParameter(event)" value="perimeter_se">Perimeter Se</option>
+      <option onclick="selectParameter(event)" value="area_se">Area Se</option>
+      <option onclick="selectParameter(event)" value="smoothness_se">Smoothness Se</option>
+      <option onclick="selectParameter(event)" value="compactness_se">Compactness Se</option>
+      <option onclick="selectParameter(event)" value="concavity_se">Concavity Se</option>
+      <option onclick="selectParameter(event)" value="concave points_se">Concave Points Se</option>
+      <option onclick="selectParameter(event)" value="fractal_dimension_se">Fractal Dimension Se</option>
+      <option onclick="selectParameter(event)" value="texture_worst">Texture Worst</option>
+      <option onclick="selectParameter(event)" value="perimeter_worst">Perimeter Worst</option>
+      <option onclick="selectParameter(event)" value="area_worst">Area Worst</option>
+      <option onclick="selectParameter(event)" value="smoothness_worst">Smoothness Worst</option>
+      <option onclick="selectParameter(event)" value="compactness_worst">Compactness Worst</option>
+      <option onclick="selectParameter(event)" value="concavity_worst">Concavity Worst</option>
+      <option onclick="selectParameter(event)" value="concave points_worst">Concave Points_worst</option>
+      <option onclick="selectParameter(event)" value="symmetry_worst">Symmetry Worst</option>
+      <option onclick="selectParameter(event)" value="fractal_dimension_worst">Fractal Dimension Worst</option>
+      <option onclick="selectParameter(event)" value="diagnosis">Diagnosis</option>
+      <!-- <option value="">Area Mean</option>
+      <option value="area_mean">Area Mean</option> -->
+    </select>
+    <input type="submit" value="Submit" onclick="pcp();">
+    
+    <!-- Create a div where the graph will take place -->
+    <div id="my_dataviz"></div>
+
+    <style>
+        .axis {
+          opacity: 0.4;
+        }
+        .axis:hover {
+          transition: 1000ms;
+          opacity: 1;
+          cursor: pointer;
+        }
+
+    body {
+      background-color:white;
+    }
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #38444d;
+    }
+    
+    li {
+      float: left;
+    }
+    
+    li a, .dropbtn {
+      display: inline-block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+    
+    li a:hover, .dropdown:hover .dropbtn {
+      background-color: red;
+    }
+    
+    li.dropdown {
+      display: inline-block;
+    }
+    
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+    
+    .dropdown-content a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      text-align: left;
+    }
+    
+    .dropdown-content a:hover {background-color: #f1f1f1;}
+    
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* select {
+      text-align:center;
+      align-items: center;
+    } */
+
+    select {
+
+  display: block;
+  margin: 0;
+  text-align: center;
+  appearance: none;
+  background-color: transparent;
+  border: none;
+  padding: 0 1em 0 0;
+  margin: 0;
+  width: 25%;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: inherit;
+  line-height: inherit;
+  outline: none;
+  
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+</style>
+
+</head>
+<body>
+
+<script>
+
+  let selectedValues = [];
+
+  function selectParameter(option) {
+
+    console.log("options-->", option.target.value)
+
+    const attribute = option.target.value;
+    selectedValues.push(attribute);
+
+  }
+
+  function pcp() {
+
+    d3.select("svg").remove();
+
+    // let selectEl = document.getElementById("mySelect");
+    // let selectedValues = Array.from(selectEl.selectedOptions, option => option.value);
+    console.log("selected_values-->",selectedValues);
+
+
+    var margin = {top: 30, right: 10, bottom: 10, left: 0},
+    width = 1400 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    var svg = d3.select("#my_dataviz")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // Parse the Data
+    d3.csv("/static/data.csv", function(data) {
+
+      console.log("data-->",data);
+
+    var color = d3.scaleOrdinal()
+        .domain(["M", "B"])
+        .range([ "#440154ff", "#21908dff"])
+
+    // Extract the list of dimensions we want to keep in the plot. Here I keep all except the column called Species
+    let dimensions = d3.keys(data[0]).filter(function(d) { return d != "diagnosis" })
+
+    console.log("dims-->",dimensions);
+
+    const sampleSize = 10;
+    const uniqueSamples = [];
+
+    while (uniqueSamples.length < sampleSize) {
+    const randomIndex = Math.floor(Math.random() * dimensions.length);
+    const randomElement = dimensions[randomIndex];
+    if (!uniqueSamples.includes(randomElement)) {
+        uniqueSamples.push(randomElement);
+    }
+    }
+
+    // dimensions = uniqueSamples;
+
+    dimensions = selectedValues;
+
+
+    // For each dimension, I build a linear scale. I store all in a y object
+    var y = {}
+    for (i in dimensions) {
+        name = dimensions[i]
+        y[name] = d3.scaleLinear()
+        .domain( d3.extent(data, function(d) { return +d[name]; }) )
+        .range([height, 0])
+    }
+
+    // Build the X scale -> it find the best position for each Y axis
+    x = d3.scalePoint()
+        .range([0, width])
+        .padding(1)
+        .domain(dimensions);
+
+    
+    var highlight = function(d){
+
+    let selected_sample = d.diagnosis
+
+    // first every group turns grey
+    d3.selectAll(".line")
+    .style("stroke", "lightgrey")
+    .transition().duration(200)
+    .style("opacity", "0.2")
+    // Second the hovered specie takes its color
+    d3.selectAll("." + selected_sample)
+    .style("stroke", color(selected_sample))
+    .transition().duration(200)
+    .style("opacity", "1")
+    }
+
+    // Unhighlight
+    var doNotHighlight = function(d){
+    d3.selectAll(".line")
+    .style("stroke", function(d){ return( color(d.diagnosis))} )
+    .transition().duration(200)
+    .style("opacity", "1")
+    }
+
+
+    // The path function take a row of the csv as input, and return x and y coordinates of the line to draw for this raw.
+    function path(d) {
+        return d3.line()(dimensions.map(function(p) { return [x(p), y[p](d[p])]; }));
+    }
+
+    // Draw the lines
+    svg
+    .selectAll("myPath")
+    .data(data)
+    .enter()
+    .append("path")
+      .attr("class", function (d) { return "line " + d.diagnosis } ) // 2 class for each line: 'line' and the group name
+      .attr("d",  path)
+      .style("fill", "none" )
+      .style("stroke", function(d){ return( color(d.diagnosis))} )
+      .style("opacity", 0.5)
+      .on("mouseover", highlight)
+      .on("mouseleave", doNotHighlight )
+
+  // Draw the axis:
+  svg.selectAll("myAxis")
+    // For each dimension of the dataset I add a 'g' element:
+    .data(dimensions).enter()
+    .append("g")
+    .attr("class", "axis")
+    // I translate this element to its right position on the x axis
+    .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+    // And I build the axis with the call function
+    .each(function(d) { d3.select(this).call(d3.axisLeft().ticks(5).scale(y[d])); })
+    // Add axis title
+    .append("text")
+      .style("text-anchor", "middle")
+      .attr("y", -9)
+      .text(function(d) { return d; })
+      .style("fill", "black")
+
+    // selectedValues = []
+
+    })
+
+  } // END OF FUNCTION 
+    </script>
+</body>
+</html>
