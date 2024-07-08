@@ -100,6 +100,8 @@ def mds_var():
 
     data_json = json.dumps(data)
 
+    print(data_json)
+
     return render_template("mds_var.html", data=data_json)
 
 if __name__ == '__main__':
